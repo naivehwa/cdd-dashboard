@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CDD팀 AI 역량 프로젝트 대시보드</title>
+<style>
+  :root {
+    --navy: #1B3A6B;
+    --teal: #0A8C8A;
+    --teal-light: #E1F5EE;
+    --teal-mid: #1D9E75;
+    --teal-dark: #0F6E56;
+    --blue-light: #E6F1FB;
+    --blue-mid: #378ADD;
+    --blue-dark: #185FA5;
+    --purple-light: #EEEDFE;
+    --purple-mid: #7F77DD;
+    --purple-dark: #534AB7;
+    --amber-light: #FAEEDA;
+    --amber-mid: #BA7517;
+    --amber-dark: #854F0B;
+    --coral-light: #FAECE7;
+    --coral-mid: #D85A30;
+    --coral-dark: #993C1D;
+    --bg: #F5F6FA;
+    --surface: #FFFFFF;
+    --surface2: #F0F2F7;
+    --border: #E2E5EF;
+    --text-primary: #1A1D2E;
+    --text-secondary: #5A6070;
+    --text-muted: #9AA0B0;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-pill: 20px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; }
+  a { color: var(--blue-dark); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── 헤더 ── */
+  .site-header { background: var(--navy); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  .site-title { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .site-title span { color: #5DCAA5; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge-live { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 11px; border-radius: var(--radius-pill); background: rgba(29,158,117,0.2); color: #5DCAA5; font-weight: 600; border: 1px solid rgba(93,202,165,0.3); }
+  .dot-live { width: 7px; height: 7px; border-radius: 50%; background: #5DCAA5; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.35} }
+  .last-sync { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  /* ── 버튼 ── */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; font-size: 13px; font-family: inherit; transition: background 0.15s, border-color 0.15s; }
+  .btn:hover { background: var(--surface2); border-color: #c0c5d5; }
+  .btn-primary { background: var(--teal-mid); color: #fff; border-color: var(--teal-mid); }
+  .btn-primary:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
+  .btn-navy { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn-navy:hover { background: #14305a; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-danger:hover { color: #a32d2d; border-color: #f09595; background: #fcebeb; }
+
+  /* ── 메인 레이아웃 ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* ── 설정 패널 ── */
+  .setup-panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 24px; display: none; }
+  .setup-panel.open { display: block; }
+  .setup-panel h2 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:680px) { .setup-grid { grid-template-columns: 1fr; } }
+  .setup-block { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--surface2); }
+  .setup-block h3 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .setup-block p { font-size: 12px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+  .setup-block code { font-size: 11px; background: var(--border); padding: 1px 5px; border-radius: 4px; }
+  .input-row { display: flex; gap: 8px; }
+  .setup-input { flex: 1; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font-size: 13px; font-family: inherit; }
+  .setup-input:focus { outline: none; border-color: var(--teal-mid); }
+  .hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+  /* ── 알림 바 ── */
+  .notice { background: var(--teal-light); border: 1px solid #9FE1CB; border-radius: var(--radius-sm); padding: 10px 16px; font-size: 13px; color: var(--teal-dark); margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
+  .notice.show { display: flex; }
+
+  /* ── 통계 바 ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  .stat-val { font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+  .stat-val.teal { color: var(--teal-mid); }
+  .stat-val.blue { color: var(--blue-dark); }
+  .stat-val.navy { color: var(--navy); }
+
+  /* ── 툴바 ── */
+  .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab { padding: 6px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; color: var(--text-secondary); font-family: inherit; transition: all 0.15s; }
+  .tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .toolbar-right { display: flex; gap: 8px; }
+
+  /* ── 팀원 블록 ── */
+  .member-block { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; }
+  .member-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+  .member-left { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .av-0 { background: var(--teal-light); color: var(--teal-dark); }
+  .av-1 { background: var(--blue-light); color: var(--blue-dark); }
+  .av-2 { background: var(--purple-light); color: var(--purple-dark); }
+  .av-3 { background: var(--amber-light); color: var(--amber-dark); }
+  .av-4 { background: var(--coral-light); color: var(--coral-dark); }
+  .member-name { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .member-role { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .member-right { display: flex; align-items: center; gap: 8px; }
+  .proj-count { font-size: 12px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--navy); color: #fff; font-weight: 600; }
+
+  /* ── 프로젝트 리스트 ── */
+  .proj-list { }
+  .proj-item { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .proj-item:last-child { border-bottom: none; }
+  .proj-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .proj-name-wrap { flex: 1; }
+  .proj-num { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .proj-name { font-size: 15px; font-weight: 700; color: var(--text-primary); line-height: 1.4; }
+  .proj-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+  .pill { font-size: 11px; padding: 3px 10px; border-radius: var(--radius-pill); font-weight: 600; }
+  .pill-ing { background: var(--blue-light); color: var(--blue-dark); }
+  .pill-done { background: var(--teal-light); color: var(--teal-dark); }
+  .pill-review { background: var(--purple-light); color: var(--purple-dark); }
+  .pill-wait { background: #F1EFE8; color: #5F5E5A; }
+  .pct-text { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .prog-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 10px; border: 1px solid var(--border); }
+  .prog-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .pf-0 { background: var(--teal-mid); }
+  .pf-1 { background: var(--blue-mid); }
+  .pf-2 { background: var(--purple-mid); }
+  .pf-3 { background: linear-gradient(90deg, var(--amber-mid), #EF9F27); }
+  .pf-4 { background: var(--coral-mid); }
+  .desc-box { font-size: 13px; color: var(--text-secondary); line-height: 1.7; border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 10px; }
+  .proj-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .footer-left { display: flex; align-items: center; gap: 10px; }
+  .drive-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--blue-light); color: var(--blue-dark); text-decoration: none; border: 1px solid #B5D4F4; font-weight: 600; }
+  .drive-btn:hover { background: #cee3f8; text-decoration: none; }
+  .no-drive { font-size: 12px; color: var(--text-muted); }
+  .updated { font-size: 11px; color: var(--text-muted); }
+  .footer-right { display: flex; gap: 6px; }
+  .no-proj { padding: 22px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+  /* ── 모달 ── */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  .modal-box { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; width: min(500px, 100%); max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 18px; }
+  .field-group { margin-bottom: 14px; }
+  .field-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-bottom: 5px; display: block; }
+  .field-input { width: 100%; padding: 9px 11px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); color: var(--text-primary); font-size: 14px; font-family: inherit; }
+  .field-input:focus { outline: none; border-color: var(--teal-mid); background: var(--surface); }
+  textarea.field-input { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .pct-display { font-weight: 700; color: var(--teal-mid); }
+
+  /* ── 삭제 확인 모달 ── */
+  .confirm-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
+  .confirm-box { background: var(--surface); border-radius: var(--radius); padding: 24px; width: min(380px,100%); border: 1px solid var(--border); }
+  .confirm-box h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+  .confirm-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.6; }
+  .confirm-btns { display: flex; gap: 8px; justify-content: flex-end; }
+
+  @media(max-width:600px) {
+    .site-header { padding: 14px 16px; }
+    .main { padding: 16px 12px 40px; }
+    .member-header { padding: 12px 14px; }
+    .proj-item { padding: 14px; }
+    .setup-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ──────────── HEADER ──────────── -->
+<header class="site-header">
+  <div class="site-title">CDD팀 <span>AI 역량 프로젝트</span></div>
+  <div class="header-right">
+    <span class="badge-live"><span class="dot-live"></span>실시간 연동</span>
+    <span class="last-sync" id="sync-time">미연결</span>
+    <button class="btn btn-sm" onclick="toggleSetup()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#fff;">⚙ 시트 연결</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- 알림 -->
+  <div class="notice" id="notice">
+    <span>✓</span><span id="notice-msg"></span>
+  </div>
+
+  <!-- 설정 패널 -->
+  <div class="setup-panel" id="setup-panel">
+    <h2>🔗 Google Sheets & Apps Script 연결 설정</h2>
+    <div class="setup-grid">
+      <!-- Sheets 읽기 -->
+      <div class="setup-block">
+        <h3>① Google Sheets 연결 (읽기)</h3>
+        <p>
+          시트를 <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 공유 설정 후<br>
+          URL에서 <code>/d/SHEET_ID/edit</code> 중 <code>SHEET_ID</code> 부분을 복사해서 입력하세요.<br><br>
+          <strong>시트 헤더 (1행, A~H열):</strong><br>
+          <code>이름 | 직책 | 프로젝트명 | 상태 | 진행률 | 진행내용 | 드라이브URL | 수정일</code><br><br>
+          한 사람이 여러 프로젝트를 가질 경우 이름을 반복해서 여러 행으로 입력하세요.
+        </p>
+        <div class="input-row">
+          <input class="setup-input" id="sheet-id-in" placeholder="Google Sheets ID 붙여넣기" />
+          <button class="btn btn-primary btn-sm" onclick="connectSheet()">연결</button>
+        </div>
+        <p class="hint">연결 후 30초마다 자동 갱신됩니다.</p>
+      </div>
+      <!-- Apps Script 쓰기 -->
+      <div class="setup-block">
+        <h3>② Apps Script 연결 (쓰기)</h3>
+        <p>
+          대시보드에서 수정한 내용을 Google Sheets에도 저장하려면<br>
+          동봉된 <code>apps_script.gs</code> 파일을 Google Apps Script에 배포 후<br>
+          웹앱 URL을 입력하세요.
+        </p>
+        <div class="input-row">
+          <input class="setup-input" id="script-url-in" placeholder="Apps Script 웹앱 URL 붙여넣기" />
+          <button class="btn btn-primary btn-sm" onclick="saveScript()">저장</button>
+        </div>
+        <p class="hint">배포 시 실행 권한: "나", 액세스 권한: "모든 사용자"로 설정하세요.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 통계 -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">팀원 수</div><div class="stat-val navy" id="s-members">0</div></div>
+    <div class="stat-card"><div class="stat-label">전체 프로젝트</div><div class="stat-val navy" id="s-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-val blue" id="s-ing">0</div></div>
+    <div class="stat-card"><div class="stat-label">완료</div><div class="stat-val teal" id="s-done">0</div></div>
+    <div class="stat-card"><div class="stat-label">검토 중</div><div class="stat-val" id="s-review" style="color:var(--purple-dark);">0</div></div>
+    <div class="stat-card"><div class="stat-label">평균 진행률</div><div class="stat-val teal" id="s-avg">0%</div></div>
+  </div>
+
+  <!-- 툴바 -->
+  <div class="toolbar">
+    <div class="tabs">
+      <button class="tab active" onclick="setFilter('all',this)">전체</button>
+      <button class="tab" onclick="setFilter('진행중',this)">진행 중</button>
+      <button class="tab" onclick="setFilter('완료',this)">완료</button>
+      <button class="tab" onclick="setFilter('검토중',this)">검토 중</button>
+      <button class="tab" onclick="setFilter('대기',this)">대기</button>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-navy" onclick="addMember()">+ 팀원 추가</button>
+      <button class="btn btn-sm" onclick="manualRefresh()">↻ 새로고침</button>
+    </div>
+  </div>
+
+  <!-- 팀원 리스트 -->
+  <div id="members-list"></div>
+
+</div>
+
+<!-- ──────────── 수정 모달 ──────────── -->
+<div id="edit-modal" style="display:none;">
+  <div class="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title">수정</div>
+      <div id="member-fields">
+        <div class="field-group">
+          <label class="field-label">이름</label>
+          <input class="field-input" id="e-name" placeholder="홍길동" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">직책</label>
+          <input class="field-input" id="e-role" placeholder="선임연구원" />
+        </div>
+      </div>
+      <div id="proj-fields">
+        <div class="field-group">
+          <label class="field-label">프로젝트명</label>
+          <input class="field-input" id="e-proj" placeholder="AI 커리큘럼 개발" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">진행 상태</label>
+          <select class="field-input" id="e-status">
+            <option value="진행중">진행 중</option>
+            <option value="완료">완료</option>
+            <option value="검토중">검토 중</option>
+            <option value="대기">대기</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">진행률 — <span class="pct-display" id="pct-out">0</span>%</label>
+          <input type="range" class="field-input" id="e-pct" min="0" max="100" step="5" value="0"
+            oninput="document.getElementById('pct-out').textContent=this.value"
+            style="padding:6px 0;border:none;background:transparent;" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">진행 내용</label>
+          <textarea class="field-input" id="e-desc" rows="4" placeholder="현재까지 진행한 내용을 입력하세요"></textarea>
+        </div>
+        <div class="field-group">
+          <label class="field-label">구글 드라이브 URL</label>
+          <input class="field-input" id="e-url" placeholder="https://drive.google.com/..." />
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn" onclick="closeModal()">취소</button>
+        <button class="btn btn-primary" onclick="saveEdit()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────── 삭제 확인 모달 ──────────── -->
+<div id="confirm-modal" style="display:none;">
+  <div class="confirm-modal" onclick="if(event.target===this)closeConfirm()">
+    <div class="confirm-box">
+      <h3 id="confirm-title">삭제 확인</h3>
+      <p id="confirm-msg">이 항목을 삭제할까요?</p>
+      <div class="confirm-btns">
+        <button class="btn" onclick="closeConfirm()">취소</button>
+        <button class="btn btn-primary" id="confirm-ok" style="background:#a32d2d;border-color:#a32d2d;">삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 색상 팔레트 ──
+const AV_COLORS = ['av-0','av-1','av-2','av-3','av-4'];
+const PF_COLORS = ['pf-0','pf-1','pf-2','pf-3','pf-4'];
+const STATUS_CFG = {
+  '진행중': {label:'진행 중', cls:'pill-ing'},
+  '완료':   {label:'완료',   cls:'pill-done'},
+  '검토중': {label:'검토 중',cls:'pill-review'},
+  '대기':   {label:'대기',   cls:'pill-wait'},
+};
+
+// ── 초기 샘플 데이터 ──
+let members = [
+  { id:0, name:'김민지', role:'선임연구원', color:0, projects:[
+    {id:0, proj:'AI 기반 파닉스 콘텐츠 자동 생성', status:'진행중', pct:70, desc:'ChatGPT API 연동 테스트 완료. 프롬프트 설계 2차 수정 진행 중. 샘플 콘텐츠 20개 생성 완료.', url:'', updated:'2025-06-17'},
+    {id:1, proj:'AI 음성 인식 피드백 시스템 연구', status:'대기', pct:10, desc:'Web Speech API 기초 조사 완료. 기획안 작성 예정.', url:'', updated:'2025-06-15'},
+  ]},
+  { id:1, name:'이정화', role:'책임연구원', color:1, projects:[
+    {id:0, proj:'AI 교수법 연구 보고서', status:'검토중', pct:90, desc:'초안 완성 후 팀 내 피드백 수렴 완료. 회장님 리뷰 대기 중.', url:'', updated:'2025-06-16'},
+  ]},
+  { id:2, name:'오미선', role:'과장', color:2, projects:[
+    {id:0, proj:'Smart Class AI 도입 가이드', status:'진행중', pct:45, desc:'캠퍼스 현장 방문 2개 완료(운정, 서대문). 교사 인터뷰 내용 정리 중.', url:'', updated:'2025-06-15'},
+    {id:1, proj:'AI 활용 학부모 안내 자료', status:'진행중', pct:30, desc:'초안 기획 완료. 디자인 작업 예정.', url:'', updated:'2025-06-14'},
+  ]},
+  { id:3, name:'김혜선', role:'과장', color:3, projects:[
+    {id:0, proj:'AI 활용 학습 데이터 분석', status:'진행중', pct:55, desc:'SR 데이터 6개월치 정리 완료. Python 분석 스크립트 작성 중. 시각화 대시보드 프로토타입 완성.', url:'', updated:'2025-06-17'},
+  ]},
+  { id:4, name:'박소연', role:'연구원', color:4, projects:[
+    {id:0, proj:'AI 그림책 스토리보드 제작', status:'완료', pct:100, desc:'Midjourney로 12장면 삽화 완성. 최종본 팀 공유 완료.', url:'', updated:'2025-06-14'},
+    {id:1, proj:'AI 스토리 생성 실험', status:'진행중', pct:40, desc:'GPT-4 스토리 프롬프트 설계 중. 초등 저학년 대상 파일럿 예정.', url:'', updated:'2025-06-13'},
+  ]},
+];
+
+let filter = 'all';
+let sheetId = localStorage.getItem('cdd_sheet_id') || '';
+let scriptUrl = localStorage.getItem('cdd_script_url') || '';
+let pollTimer = null;
+let editMode = null;
+let confirmCallback = null;
+
+// ── 유틸 ──
+function today() { return new Date().toISOString().slice(0,10); }
+function initials(name) { return name ? name.slice(0,2) : '??'; }
+function allProjects() { return members.flatMap(m => m.projects); }
+function nextId(arr) { return arr.length ? Math.max(...arr.map(x=>x.id)) + 1 : 0; }
+
+// ── 통계 ──
+function updateStats() {
+  const projs = allProjects();
+  document.getElementById('s-members').textContent = members.length;
+  document.getElementById('s-total').textContent = projs.length;
+  document.getElementById('s-ing').textContent = projs.filter(p=>p.status==='진행중').length;
+  document.getElementById('s-done').textContent = projs.filter(p=>p.status==='완료').length;
+  document.getElementById('s-review').textContent = projs.filter(p=>p.status==='검토중').length;
+  const avg = projs.length ? Math.round(projs.reduce((s,p)=>s+p.pct,0)/projs.length) : 0;
+  document.getElementById('s-avg').textContent = avg + '%';
+}
+
+// ── 렌더링 ──
+function render() {
+  const list = document.getElementById('members-list');
+  list.innerHTML = members.map(m => {
+    const filtered = filter === 'all' ? m.projects : m.projects.filter(p => p.status === filter);
+    const av = AV_COLORS[m.color % AV_COLORS.length];
+    const pf = PF_COLORS[m.color % PF_COLORS.length];
+    return `
+    <div class="member-block" id="mb-${m.id}">
+      <div class="member-header">
+        <div class="member-left">
+          <div class="avatar ${av}">${initials(m.name)}</div>
+          <div>
+            <div class="member-name">${m.name}</div>
+            <div class="member-role">${m.role}</div>
+          </div>
+        </div>
+        <div class="member-right">
+          <span class="proj-count">${m.projects.length}개 프로젝트</span>
+          <button class="btn btn-sm" onclick="openAddProj(${m.id})">+ 프로젝트 추가</button>
+          <button class="btn btn-sm" onclick="openEditMember(${m.id})">✎ 팀원 수정</button>
+          <button class="btn btn-sm btn-danger" onclick="confirmDeleteMember(${m.id})">✕</button>
+        </div>
+      </div>
+      <div class="proj-list">
+        ${filtered.length === 0
+          ? `<div class="no-proj">해당 상태의 프로젝트가 없습니다</div>`
+          : filtered.map((p, ri) => {
+              const st = STATUS_CFG[p.status] || {label:p.status, cls:'pill-wait'};
+              const hasUrl = p.url && p.url.startsWith('http');
+              return `
+              <div class="proj-item">
+                <div class="proj-top">
+                  <div class="proj-name-wrap">
+                    <div class="proj-num">프로젝트 ${ri+1}</div>
+                    <div class="proj-name">${p.proj}</div>
+                  </div>
+                  <div class="proj-badges">
+                    <span class="pill ${st.cls}">${st.label}</span>
+                    <span class="pct-text">${p.pct}%</span>
+                  </div>
+                </div>
+                <div class="prog-bar"><div class="prog-fill ${pf}" style="width:${p.pct}%"></div></div>
+                ${p.desc ? `<div class="desc-box">${p.desc}</div>` : ''}
+                <div class="proj-footer">
+                  <div class="footer-left">
+                    ${hasUrl
+                      ? `<a href="${p.url}" class="drive-btn" target="_blank">📁 드라이브 열기</a>`
+                      : `<span class="no-drive">드라이브 미연결</span>`}
+                    <span class="updated">수정: ${p.updated}</span>
+                  </div>
+                  <div class="footer-right">
+                    <button class="btn btn-sm" onclick="openEditProj(${m.id},${p.id})">✎ 수정</button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteProj(${m.id},${p.id})">✕ 삭제</button>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')
+        }
+      </div>
+    </div>`;
+  }).join('');
+  updateStats();
+}
+
+// ── 필터 ──
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// ── 팀원 추가 ──
+function addMember() {
+  const newId = nextId(members);
+  members.push({id: newId, name:'새 팀원', role:'직책', color: newId % AV_COLORS.length, projects:[]});
+  render();
+  openEditMember(newId);
+}
+
+// ── 팀원 수정 모달 ──
+function openEditMember(mid) {
+  const m = members.find(x=>x.id===mid);
+  editMode = {type:'member', mid};
+  document.getElementById('modal-title').textContent = '팀원 정보 수정';
+  document.getElementById('member-fields').style.display = 'block';
+  document.getElementById('proj-fields').style.display = 'none';
+  document.getElementById('e-name').value = m.name;
+  document.getElementById('e-role').value = m.role;
+  document.getElementById('edit-modal').style.display = 'block';
+}
+
+// ── 프로젝트 추가 모달 ──
+function openAddProj(mid) {
+  const m = members.find(x=>x.id===mid);
+  editMode = {type:'new-proj', mid, pid: nextId(m.projects)};
+  document.getElementById('modal-title').textContent = `${m.name} — 새 프로젝트 추가`;
+  showProjFields();
+  document.getElementById('e-proj').value = '';
+  document.getElementById('e-status').value = '진행중';
+  document.getElementById('e-pct').value = 0;
+  document.getElementById('pct-out').textContent = 0;
+  document.getElementById('e-desc').value = '';
+  document.getElementById('e-url').value = '';
+  document.getElementById('edit-modal').style.display = 'block';
+}
+
+// ── 프로젝트 수정 모달 ──
+function openEditProj(mid, pid) {
+  const m = members.find(x=>x.id===mid);
+  const p = m.projects.find(x=>x.id===pid);
+  editMode = {type:'proj', mid, pid};
+  document.getElementById('modal-title').textContent = `${m.name} — 프로젝트 수정`;
+  showProjFields();
+  document.getElementById('e-proj').value = p.proj;
+  document.getElementById('e-status').value = p.status;
+  document.getElementById('e-pct').value = p.pct;
+  document.getElementById('pct-out').textContent = p.pct;
+  document.getElementById('e-desc').value = p.desc;
+  document.getElementById('e-url').value = p.url || '';
+  document.getElementById('edit-modal').style.display = 'block';
+}
+
+function showProjFields() {
+  document.getElementById('member-fields').style.display = 'none';
+  document.getElementById('proj-fields').style.display = 'block';
+}
+
+// ── 저장 ──
+async function saveEdit() {
+  if (!editMode) return;
+  if (editMode.type === 'member') {
+    const m = members.find(x=>x.id===editMode.mid);
+    m.name = document.getElementById('e-name').value.trim() || m.name;
+    m.role = document.getElementById('e-role').value.trim() || m.role;
+  } else {
+    const m = members.find(x=>x.id===editMode.mid);
+    const data = {
+      id: editMode.pid,
+      proj: document.getElementById('e-proj').value.trim(),
+      status: document.getElementById('e-status').value,
+      pct: parseInt(document.getElementById('e-pct').value),
+      desc: document.getElementById('e-desc').value.trim(),
+      url: document.getElementById('e-url').value.trim(),
+      updated: today()
+    };
+    if (editMode.type === 'new-proj') {
+      m.projects.push(data);
+    } else {
+      const idx = m.projects.findIndex(p=>p.id===editMode.pid);
+      if (idx > -1) m.projects[idx] = data;
+    }
+    if (scriptUrl) await pushToSheet(editMode.mid, data);
+  }
+  closeModal();
+  render();
+  notify('저장 완료!' + (scriptUrl && editMode.type !== 'member' ? ' (시트에도 반영됨)' : ''));
+}
+
+// ── Apps Script 쓰기 ──
+async function pushToSheet(mid, projData) {
+  const m = members.find(x=>x.id===mid);
+  try {
+    await fetch(scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        action: 'upsert',
+        name: m.name,
+        role: m.role,
+        proj: projData.proj,
+        status: projData.status,
+        pct: projData.pct,
+        desc: projData.desc,
+        url: projData.url,
+        updated: projData.updated
+      })
+    });
+  } catch(e) { console.warn('Apps Script 오류:', e); }
+}
+
+// ── 삭제 확인 ──
+function confirmDeleteMember(mid) {
+  const m = members.find(x=>x.id===mid);
+  document.getElementById('confirm-title').textContent = '팀원 삭제';
+  document.getElementById('confirm-msg').textContent = `"${m.name}" 팀원과 해당 프로젝트 ${m.projects.length}개를 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.`;
+  confirmCallback = () => { members = members.filter(x=>x.id!==mid); render(); notify('팀원이 삭제되었습니다.'); };
+  document.getElementById('confirm-modal').style.display = 'block';
+  document.getElementById('confirm-ok').onclick = () => { closeConfirm(); confirmCallback(); };
+}
+
+function confirmDeleteProj(mid, pid) {
+  const m = members.find(x=>x.id===mid);
+  const p = m.projects.find(x=>x.id===pid);
+  document.getElementById('confirm-title').textContent = '프로젝트 삭제';
+  document.getElementById('confirm-msg').textContent = `"${p.proj}" 프로젝트를 삭제할까요?`;
+  confirmCallback = () => { m.projects = m.projects.filter(x=>x.id!==pid); render(); notify('프로젝트가 삭제되었습니다.'); };
+  document.getElementById('confirm-modal').style.display = 'block';
+  document.getElementById('confirm-ok').onclick = () => { closeConfirm(); confirmCallback(); };
+}
+
+function closeConfirm() { document.getElementById('confirm-modal').style.display = 'none'; }
+function closeModal() { document.getElementById('edit-modal').style.display = 'none'; editMode = null; }
+
+// ── 설정 패널 ──
+function toggleSetup() {
+  const p = document.getElementById('setup-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) {
+    if (sheetId) document.getElementById('sheet-id-in').value = sheetId;
+    if (scriptUrl) document.getElementById('script-url-in').value = scriptUrl;
+  }
+}
+
+async function connectSheet() {
+  const id = document.getElementById('sheet-id-in').value.trim();
+  if (!id) return;
+  sheetId = id;
+  localStorage.setItem('cdd_sheet_id', id);
+  await fetchSheet();
+  startPoll();
+  document.getElementById('setup-panel').classList.remove('open');
+  notify('Google Sheets 연결 완료! 30초마다 자동 갱신됩니다.');
+}
+
+function saveScript() {
+  const url = document.getElementById('script-url-in').value.trim();
+  scriptUrl = url;
+  localStorage.setItem('cdd_script_url', url);
+  notify('Apps Script URL 저장 완료! 대시보드 수정 내용이 시트에도 저장됩니다.');
+}
+
+// ── Google Sheets 읽기 ──
+async function fetchSheet() {
+  if (!sheetId) return;
+
+  // Apps Script가 연결된 경우 → 프록시로 읽기 (file:// 환경에서도 작동)
+  if (scriptUrl) {
+    try {
+      const res = await fetch(scriptUrl + '?action=read&sheetId=' + sheetId);
+      const json = await res.json();
+      if (json.success && json.data) {
+        parseSheetData(json.data);
+        return;
+      }
+    } catch(e) {
+      console.warn('Apps Script 읽기 실패, gviz로 시도:', e);
+    }
+  }
+
+  // Apps Script 없거나 실패 시 → gviz 직접 호출 (http:// 환경에서만 작동)
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.match(/setResponse\(([\s\S]*?)\);?\s*$/)[1]);
+    const rows = json.table.rows.slice(1);
+    const rawData = rows.map(r => ({
+      '이름': r.c[0]?.v || '',
+      '직책': r.c[1]?.v || '',
+      '프로젝트명': r.c[2]?.v || '',
+      '상태': r.c[3]?.v || '대기',
+      '진행률(%)': r.c[4]?.v || 0,
+      '진행내용': r.c[5]?.v || '',
+      '드라이브URL': r.c[6]?.v || '',
+      '수정일': r.c[7]?.v || today()
+    }));
+    parseSheetData(rawData);
+  } catch(e) {
+    console.warn('시트 불러오기 실패:', e);
+    document.getElementById('sync-time').textContent = '갱신 실패';
+  }
+}
+
+function formatDate(val) {
+  if (!val) return today();
+  // 이미 YYYY-MM-DD 형식이면 그대로
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  // Date 객체나 긴 문자열이면 파싱
+  try {
+    const d = new Date(val);
+    if (!isNaN(d)) return d.toISOString().slice(0, 10);
+  } catch(e) {}
+  return String(val).slice(0, 10);
+}
+
+function parseSheetData(data) {
+  const byName = {};
+  let colorIdx = 0;
+  data.forEach(r => {
+    const name = r['이름'] || '';
+    const role = r['직책'] || '';
+    if (!name) return;
+    if (!byName[name]) {
+      byName[name] = {id: colorIdx, name, role, color: colorIdx % AV_COLORS.length, projects:[]};
+      colorIdx++;
+    }
+    const pid = byName[name].projects.length;
+    byName[name].projects.push({
+      id: pid,
+      proj: r['프로젝트명'] || '',
+      status: r['상태'] || '대기',
+      pct: parseInt(r['진행률(%)'] || 0),
+      desc: r['진행내용'] || '',
+      url: r['드라이브URL'] || '',
+      updated: formatDate(r['수정일'])
+    });
+  });
+  members = Object.values(byName);
+  render();
+  document.getElementById('sync-time').textContent = '마지막 갱신: ' + new Date().toLocaleTimeString('ko-KR');
+}
+
+async function manualRefresh() {
+  if (!sheetId) { notify('먼저 Google Sheets를 연결해 주세요.'); return; }
+  await fetchSheet();
+  notify('새로고침 완료!');
+}
+
+function startPoll() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(fetchSheet, 30000);
+}
+
+// ── 알림 ──
+function notify(msg) {
+  const el = document.getElementById('notice');
+  document.getElementById('notice-msg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── 초기화 ──
+render();
+if (sheetId) { fetchSheet(); startPoll(); }
+</script>
+</body>
+</html>
