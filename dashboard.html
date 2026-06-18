@@ -221,12 +221,12 @@
         </div>
         <div class="field-group">
           <label class="field-label">진행률 — <span class="pct-display" id="pct-out">0</span>%</label>
-          <input type="range" class="field-input" id="e-pct" min="0" max="100" step="5" value="0"
+          <input type="range" class="field-input" id="e-pct" min="0" max="100" step="1" value="0"
             oninput="document.getElementById('pct-out').textContent=this.value"
             style="padding:6px 0;border:none;background:transparent;" />
         </div>
         <div class="field-group"><label class="field-label">진행 내용</label><textarea class="field-input" id="e-desc" rows="4" placeholder="현재까지 진행한 내용을 입력하세요"></textarea></div>
-        <div class="field-group"><label class="field-label">구글 드라이브 URL</label><input class="field-input" id="e-url" placeholder="https://drive.google.com/..." /></div>
+        <div class="field-group"><label class="field-label">링크 URL (드라이브, 대시보드 등)</label><input class="field-input" id="e-url" placeholder="https://..." /></div>
       </div>
       <div class="modal-btns">
         <button class="btn" onclick="closeModal()">취소</button>
@@ -338,7 +338,7 @@ function render() {
                 ${p.desc ? `<div class="desc-box">${p.desc}</div>` : ''}
                 <div class="proj-footer">
                   <div class="footer-left">
-                    ${hasUrl ? `<a href="${p.url}" class="drive-btn" target="_blank">📁 드라이브</a>` : `<span class="no-drive">드라이브 미연결</span>`}
+                    ${hasUrl ? `<a href="${p.url}" class="drive-btn" target="_blank">🔗 링크 열기</a>` : `<span class="no-drive">링크 없음</span>`}
                     <span class="updated">${p.updated}</span>
                   </div>
                   <div class="footer-right">
