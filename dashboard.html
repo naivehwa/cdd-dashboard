@@ -194,6 +194,7 @@
     </div>
     <div class="toolbar-right">
       <button class="btn btn-indigo" onclick="addMember()">+ 팀원 추가</button>
+      <button class="btn btn-sm" onclick="sortMembers();render();">직급순 정렬</button>
       <button class="btn btn-sm" onclick="manualRefresh()">↻ 새로고침</button>
     </div>
   </div>
@@ -279,6 +280,37 @@ function today() { return new Date().toISOString().slice(0,10); }
 function allProjects() { return members.flatMap(m => m.projects); }
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x=>x.id))+1 : 0; }
 
+const RANK_ORDER = ['부장','차장','과장','대리','주임','사원'];
+function rankIndex(role) {
+  const idx = RANK_ORDER.findIndex(r => role.includes(r));
+  return idx === -1 ? 99 : idx;
+}
+function sortMembers() {
+  members.sort((a, b) => {
+    const rd = rankIndex(a.role) - rankIndex(b.role);
+    if (rd !== 0) return rd;
+    return a.name.localeCompare(b.name, 'ko');
+  });
+}
+
+let dragSrcId = null;
+function onDragStart(e, mid) {
+  dragSrcId = mid;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.5';
+}
+function onDragEnd(e) { e.currentTarget.style.opacity = '1'; }
+function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onDrop(e, mid) {
+  e.preventDefault();
+  if (dragSrcId === mid) return;
+  const srcIdx = members.findIndex(m => m.id === dragSrcId);
+  const dstIdx = members.findIndex(m => m.id === mid);
+  const [moved] = members.splice(srcIdx, 1);
+  members.splice(dstIdx, 0, moved);
+  render();
+}
+
 function onStatusChange(val) {
   if (val === '완료') {
     document.getElementById('e-pct').value = 100;
@@ -303,7 +335,10 @@ function render() {
     const filtered = filter === 'all' ? m.projects : m.projects.filter(p => p.status === filter);
     const mc = MEMBER_COLORS[m.id % MEMBER_COLORS.length];
     return `
-    <div class="member-block" id="mb-${m.id}">
+    <div class="member-block" id="mb-${m.id}" draggable="true"
+      ondragstart="onDragStart(event,${m.id})" ondragend="onDragEnd(event)"
+      ondragover="onDragOver(event)" ondrop="onDrop(event,${m.id})"
+      style="cursor:grab;">
       <div class="member-header" style="background:#F5F6FA;">
         <div class="member-left">
           <div class="member-name" style="color:#1E1B4B;">${m.name}</div>
@@ -572,6 +607,7 @@ function parseSheetData(data) {
     });
   });
   members = Object.values(byName);
+  sortMembers();
   render();
   document.getElementById('sync-time').textContent = '마지막 갱신: ' + new Date().toLocaleTimeString('ko-KR');
 }
