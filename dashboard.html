@@ -111,6 +111,8 @@
   .drive-btn:hover { background: #C7D2FE; text-decoration: none; }
   .no-drive { font-size: 11px; color: var(--text-muted); }
   .updated { font-size: 11px; color: var(--text-muted); }
+  .due-badge { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface2); color: var(--text-secondary); font-weight: 600; }
+  .due-badge.due-over { background: #FEF2F2; color: #B91C1C; }
   .footer-right { display: flex; gap: 5px; }
   .no-proj { padding: 20px; text-align: center; font-size: 13px; color: var(--text-muted); }
 
@@ -228,6 +230,7 @@
         </div>
         <div class="field-group"><label class="field-label">진행 내용</label><textarea class="field-input" id="e-desc" rows="4" placeholder="현재까지 진행한 내용을 입력하세요"></textarea></div>
         <div class="field-group"><label class="field-label">링크 URL (드라이브, 대시보드 등)</label><input class="field-input" id="e-url" placeholder="https://..." /></div>
+        <div class="field-group"><label class="field-label">마감일정</label><input type="date" class="field-input" id="e-due" /></div>
       </div>
       <div class="modal-btns">
         <button class="btn" onclick="closeModal()">취소</button>
@@ -382,6 +385,7 @@ function render() {
                 <div class="proj-footer">
                   <div class="footer-left">
                     ${hasUrl ? `<a href="${p.url}" class="drive-btn" target="_blank">🔗 링크 열기</a>` : `<span class="no-drive">링크 없음</span>`}
+                    ${p.due ? `<span class="due-badge ${isOverdue(p.due, p.status) ? 'due-over' : ''}">📅 ${p.due}</span>` : ''}
                     <span class="updated">${p.updated}</span>
                   </div>
                   <div class="footer-right">
@@ -434,6 +438,7 @@ function openAddProj(mid) {
   document.getElementById('pct-out').textContent = 0;
   document.getElementById('e-desc').value = '';
   document.getElementById('e-url').value = '';
+  document.getElementById('e-due').value = '';
   document.getElementById('edit-modal').style.display = 'block';
 }
 
@@ -449,6 +454,7 @@ function openEditProj(mid, pid) {
   document.getElementById('pct-out').textContent = p.pct;
   document.getElementById('e-desc').value = p.desc;
   document.getElementById('e-url').value = p.url || '';
+  document.getElementById('e-due').value = p.due || '';
   document.getElementById('edit-modal').style.display = 'block';
 }
 
@@ -473,6 +479,7 @@ async function saveEdit() {
       status, pct,
       desc: document.getElementById('e-desc').value.trim(),
       url: document.getElementById('e-url').value.trim(),
+      due: document.getElementById('e-due').value,
       updated: today()
     };
     if (editMode.type === 'new-proj') {
@@ -500,7 +507,7 @@ async function pushToSheet(mid, projData) {
     await fetch(scriptUrl, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action:'upsert', name:m.name, role:m.role, proj:projData.proj, status:projData.status, pct:projData.pct, desc:projData.desc, url:projData.url, updated:projData.updated})
+      body: JSON.stringify({action:'upsert', name:m.name, role:m.role, proj:projData.proj, status:projData.status, pct:projData.pct, desc:projData.desc, url:projData.url, due:projData.due||'', updated:projData.updated})
     });
   } catch(e) { console.warn('Apps Script 오류:', e); }
 }
@@ -587,13 +594,18 @@ async function fetchSheet() {
     const rawData = rows.map(r => ({
       '이름': r.c[0]?.v||'', '직책': r.c[1]?.v||'', '프로젝트명': r.c[2]?.v||'',
       '상태': r.c[3]?.v||'기획', '진행률(%)': r.c[4]?.v||0,
-      '진행내용': r.c[5]?.v||'', '드라이브URL': r.c[6]?.v||'', '수정일': r.c[7]?.v||today()
+      '진행내용': r.c[5]?.v||'', '드라이브URL': r.c[6]?.v||'', '마감일정': r.c[7]?.v||'', '수정일': r.c[8]?.v||today()
     }));
     parseSheetData(rawData);
   } catch(e) {
     console.warn('시트 불러오기 실패:', e);
     document.getElementById('sync-time').textContent = '갱신 실패';
   }
+}
+
+function isOverdue(due, status) {
+  if (!due || status === '완료') return false;
+  return new Date(due) < new Date(today());
 }
 
 function formatDate(val) {
@@ -617,6 +629,7 @@ function parseSheetData(data) {
       pct: parseInt(r['진행률(%)']||0),
       desc: r['진행내용']||'',
       url: r['드라이브URL']||'',
+      due: r['마감일정']||'',
       updated: formatDate(r['수정일'])
     });
   });
