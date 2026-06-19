@@ -376,7 +376,7 @@ function render() {
                     <div class="proj-name">${p.proj}</div>
                   </div>
                   <div class="proj-badges">
-                    ${p.due ? `<span class="due-badge ${isOverdue(p.due, p.status) ? 'due-over' : ''}">📅 ${p.due}</span>` : ''}
+                    ${p.due ? `<span class="due-badge ${isOverdue(p.due, p.status) ? 'due-over' : ''}">📅 마감 ${p.due}</span>` : ''}
                     <span class="pill ${st.cls}">${st.label}</span>
                     <span class="pct-text">${p.pct}%</span>
                   </div>
