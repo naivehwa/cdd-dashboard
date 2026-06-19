@@ -376,6 +376,7 @@ function render() {
                     <div class="proj-name">${p.proj}</div>
                   </div>
                   <div class="proj-badges">
+                    ${p.due ? `<span class="due-badge ${isOverdue(p.due, p.status) ? 'due-over' : ''}">📅 ${p.due}</span>` : ''}
                     <span class="pill ${st.cls}">${st.label}</span>
                     <span class="pct-text">${p.pct}%</span>
                   </div>
@@ -385,7 +386,6 @@ function render() {
                 <div class="proj-footer">
                   <div class="footer-left">
                     ${hasUrl ? `<a href="${p.url}" class="drive-btn" target="_blank">🔗 링크 열기</a>` : `<span class="no-drive">링크 없음</span>`}
-                    ${p.due ? `<span class="due-badge ${isOverdue(p.due, p.status) ? 'due-over' : ''}">📅 ${p.due}</span>` : ''}
                     <span class="updated">${p.updated}</span>
                   </div>
                   <div class="footer-right">
@@ -629,7 +629,7 @@ function parseSheetData(data) {
       pct: parseInt(r['진행률(%)']||0),
       desc: r['진행내용']||'',
       url: r['드라이브URL']||'',
-      due: r['마감일정']||'',
+      due: r['마감일정'] ? formatDate(r['마감일정']) : '',
       updated: formatDate(r['수정일'])
     });
   });
