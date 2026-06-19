@@ -440,7 +440,7 @@ function openAddProj(mid) {
 function openEditProj(mid, pid) {
   const m = members.find(x=>x.id===mid);
   const p = m.projects.find(x=>x.id===pid);
-  editMode = {type:'proj', mid, pid};
+  editMode = {type:'proj', mid, pid, originalProj: p.proj};
   document.getElementById('modal-title').textContent = `${m.name} — 프로젝트 수정`;
   showProjFields();
   document.getElementById('e-proj').value = p.proj;
@@ -481,7 +481,13 @@ async function saveEdit() {
       const idx = m.projects.findIndex(p=>p.id===editMode.pid);
       if (idx > -1) m.projects[idx] = data;
     }
-    if (scriptUrl) await pushToSheet(editMode.mid, data);
+    if (scriptUrl) {
+      if (editMode.type === 'proj' && editMode.originalProj && editMode.originalProj !== data.proj) {
+        // 제목이 바뀐 경우 기존 행 삭제 후 새로 추가
+        await deleteFromSheet(m.name, editMode.originalProj);
+      }
+      await pushToSheet(editMode.mid, data);
+    }
   }
   closeModal();
   render();
